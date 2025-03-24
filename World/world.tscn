@@ -1,0 +1,926 @@
+[gd_scene load_steps=51 format=3 uid="uid://b1sff02457t2i"]
+
+[ext_resource type="Script" path="res://World/world.gd" id="1_30x1d"]
+[ext_resource type="Script" path="res://World/camera_2d.gd" id="2_vbl43"]
+[ext_resource type="PackedScene" uid="uid://d0itwb8c5x66i" path="res://Player/player.tscn" id="4_ap2gu"]
+[ext_resource type="Texture2D" uid="uid://chppmdivdxsw4" path="res://Assets/Sprites/Green.png" id="4_j7u3h"]
+[ext_resource type="Script" path="res://Menu/loading_screen.gd" id="5_kpgss"]
+[ext_resource type="Texture2D" uid="uid://b675ds17hv171" path="res://Assets/Sprites/pointer_b.png" id="6_toevy"]
+[ext_resource type="PackedScene" uid="uid://cas0hp8n43op5" path="res://World/level_1.tscn" id="7_ealsc"]
+[ext_resource type="Script" path="res://Menu/cursor.gd" id="7_olyt0"]
+[ext_resource type="Script" path="res://World/pause_menu.gd" id="7_qajbw"]
+[ext_resource type="AudioStream" uid="uid://ben5pq7br873r" path="res://Assets/Audios/button-202966.mp3" id="7_y03c5"]
+[ext_resource type="Texture2D" uid="uid://boddbjknx7v73" path="res://Assets/Sprites/3.png" id="8_0dnxi"]
+[ext_resource type="Texture2D" uid="uid://7hpohhwpxo4u" path="res://Assets/Sprites/4.png" id="8_6egug"]
+[ext_resource type="AudioStream" uid="uid://dcwk26ewg4qt3" path="res://Assets/Audios/mouse-click-117076.mp3" id="8_rhgdh"]
+[ext_resource type="Texture2D" uid="uid://bebrvxm6o2s7l" path="res://Assets/Sprites/1.png" id="8_t8opi"]
+[ext_resource type="Texture2D" uid="uid://mormgdb22ow6" path="res://Assets/Sprites/2.png" id="9_hctvx"]
+[ext_resource type="AudioStream" uid="uid://cr8ch3k4qfued" path="res://Assets/Audios/violin-win-2-180433.mp3" id="13_l0j1e"]
+[ext_resource type="AudioStream" uid="uid://bcsjvdeuokgak" path="res://Assets/Audios/violin-win-1-175616.mp3" id="13_ujn3x"]
+[ext_resource type="Texture2D" uid="uid://bl3bx1ejsjqot" path="res://Assets/Sprites/Virtual Guy/Idle (32x32).png" id="16_evp07"]
+[ext_resource type="Texture2D" uid="uid://bhmwy5crw1aeh" path="res://Assets/Sprites/Restart.png" id="16_iubcp"]
+[ext_resource type="AudioStream" uid="uid://d2qohk47d4e8k" path="res://Assets/Audios/retro-coin-1-236677.mp3" id="19_f461l"]
+
+[sub_resource type="Animation" id="Animation_afysy"]
+length = 0.001
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath(".:modulate")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 0,
+"values": [Color(1, 1, 1, 0)]
+}
+
+[sub_resource type="Animation" id="Animation_4wprd"]
+resource_name = "fade_out"
+length = 0.7
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath(".:modulate")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0, 0.7),
+"transitions": PackedFloat32Array(1, 1),
+"update": 0,
+"values": [Color(1, 1, 1, 1), Color(1, 1, 1, 0)]
+}
+
+[sub_resource type="Animation" id="Animation_yvx60"]
+resource_name = "init"
+length = 0.8
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath(".:modulate")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0, 0.8),
+"transitions": PackedFloat32Array(1, 1),
+"update": 0,
+"values": [Color(1, 1, 1, 0), Color(1, 1, 1, 1)]
+}
+
+[sub_resource type="AnimationLibrary" id="AnimationLibrary_rxylm"]
+_data = {
+"RESET": SubResource("Animation_afysy"),
+"fade_out": SubResource("Animation_4wprd"),
+"init": SubResource("Animation_yvx60")
+}
+
+[sub_resource type="Shader" id="Shader_idsj7"]
+code = "// Flashing Shader
+// Overlays/Mixes between an animated color A and color B (alpha of each controls mix amount)
+shader_type canvas_item;
+
+// Color A: grey by default
+uniform vec4 color_a:source_color = vec4(0.7, 0.7, 0.7, 1.0);
+
+// Color B: White by default
+uniform vec4 color_b:source_color = vec4(1.0, 1.0, 1.0, 1.0);
+
+// if enabled, color_a and color_b alpha will affect transparency
+uniform bool colors_affect_alpha = false;
+
+// Whether to enable the animation or simply mix in color_a only
+uniform float flash_amount:hint_range(0.0, 1.0, 0.1) = 1.0;
+
+// if flash_amount is true, flash_speed controls the speed of the animation between color_a and color_b
+uniform float flash_speed = 1.0;
+
+// transparency, like modulate
+uniform float transparency:hint_range(0.0, 1.0, 0.01) = 1.0;
+
+// Intensity of the shader
+uniform float intensity:hint_range(0.0, 1.0, 0.1) = 1.0;
+
+
+float anim() {
+	return (sin(TIME * flash_speed) + 1.0) / 2.0;
+}
+
+// returns a mix between color_a and color_b, based on TIME
+// see the anim() function
+vec4 get_shader_color() {
+	if (flash_amount > 0.0) {
+		float f = anim();
+		return mix(color_a, color_b, f * flash_amount);
+	}else {
+		return color_a;
+	}
+}
+
+void fragment() {
+	// get input color and alpha from the texture
+	vec4 in_color = texture(TEXTURE, UV);
+	float in_alpha = in_color.a;
+
+	// get the shader color (some mix between color_a and color_b)
+	vec4 shader_rgba = get_shader_color();
+	vec3 shader_color = shader_rgba.rgb;
+	float shader_alpha = shader_rgba.a;
+
+	// rgb color mixes between in_color and shader_color * by shader_alpha
+	// this way, color_a can have a different \"intensity\" than color_b
+	//
+	// wrap in vec4 and plug in the in_alpha since we don't generally want to retain that from the texture
+	vec4 out_color = vec4(mix(in_color.rgb, shader_color, shader_alpha), in_alpha);
+
+	// if affect_alpha is true, we will modulate transparency by our color_a/b
+	if (colors_affect_alpha) {
+		out_color.a = in_alpha * shader_alpha;
+	}
+
+	out_color.a *= transparency;
+
+	// finally, use mix to control intensity of the entire effect
+	COLOR = mix(in_color, out_color, intensity);
+}"
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_vd2t5"]
+shader = SubResource("Shader_idsj7")
+shader_parameter/color_a = Color(0, 0.819608, 0, 1)
+shader_parameter/color_b = Color(0, 1, 0, 1)
+shader_parameter/colors_affect_alpha = false
+shader_parameter/flash_amount = 1.0
+shader_parameter/flash_speed = 1.0
+shader_parameter/transparency = 0.0
+shader_parameter/intensity = 1.0
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_lxgio"]
+atlas = ExtResource("16_evp07")
+region = Rect2(0, 0, 32, 32)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_va6de"]
+
+[sub_resource type="Animation" id="Animation_f4rpn"]
+length = 0.001
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath(".:modulate")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 0,
+"values": [Color(1, 1, 1, 0)]
+}
+tracks/1/type = "value"
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/path = NodePath(".:material:shader_parameter/transparency")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 0,
+"values": [0.0]
+}
+
+[sub_resource type="Animation" id="Animation_nolit"]
+resource_name = "fade_in"
+length = 0.7
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath(".:modulate")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0, 0.7),
+"transitions": PackedFloat32Array(1, 1),
+"update": 0,
+"values": [Color(1, 1, 1, 0), Color(1, 1, 1, 1)]
+}
+tracks/1/type = "value"
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/path = NodePath(".:material:shader_parameter/transparency")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/keys = {
+"times": PackedFloat32Array(0, 0.7),
+"transitions": PackedFloat32Array(1, 1),
+"update": 0,
+"values": [0.0, 0.6]
+}
+
+[sub_resource type="Animation" id="Animation_1jeh8"]
+resource_name = "fade_out"
+length = 0.8
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath(".:modulate")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0, 0.8),
+"transitions": PackedFloat32Array(1, 1),
+"update": 0,
+"values": [Color(1, 1, 1, 1), Color(1, 1, 1, 0)]
+}
+tracks/1/type = "value"
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/path = NodePath(".:material:shader_parameter/transparency")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/keys = {
+"times": PackedFloat32Array(0, 0.8),
+"transitions": PackedFloat32Array(1, 1),
+"update": 0,
+"values": [0.6, 0.0]
+}
+
+[sub_resource type="AnimationLibrary" id="AnimationLibrary_4nwf0"]
+_data = {
+"RESET": SubResource("Animation_f4rpn"),
+"fade_in": SubResource("Animation_nolit"),
+"fade_out": SubResource("Animation_1jeh8")
+}
+
+[sub_resource type="Animation" id="Animation_yjphv"]
+resource_name = "appear"
+length = 0.5
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath(".:modulate")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0, 0.5),
+"transitions": PackedFloat32Array(1, 1),
+"update": 0,
+"values": [Color(1, 1, 1, 0), Color(1, 1, 1, 1)]
+}
+
+[sub_resource type="Animation" id="Animation_pcsxh"]
+length = 0.001
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath(".:modulate")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 0,
+"values": [Color(1, 1, 1, 0)]
+}
+
+[sub_resource type="AnimationLibrary" id="AnimationLibrary_qooqi"]
+_data = {
+"RESET": SubResource("Animation_pcsxh"),
+"appear": SubResource("Animation_yjphv")
+}
+
+[sub_resource type="Animation" id="Animation_ljoje"]
+length = 0.001
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath(".:position")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 0,
+"values": [Vector2(0, -100)]
+}
+
+[sub_resource type="Animation" id="Animation_crq7x"]
+resource_name = "show_up"
+length = 4.0
+step = 0.1
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath(".:position")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0, 1, 3, 4),
+"transitions": PackedFloat32Array(1, 1, 1, 1),
+"update": 0,
+"values": [Vector2(0, -62.12), Vector2(0, 5.435), Vector2(0, 5.435), Vector2(0, -68.015)]
+}
+
+[sub_resource type="AnimationLibrary" id="AnimationLibrary_vs41w"]
+_data = {
+"RESET": SubResource("Animation_ljoje"),
+"show_up": SubResource("Animation_crq7x")
+}
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_vi8ss"]
+bg_color = Color(1, 1, 1, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0, 0, 0, 1)
+corner_radius_top_left = 5
+corner_radius_top_right = 5
+corner_radius_bottom_right = 5
+corner_radius_bottom_left = 5
+
+[sub_resource type="Animation" id="Animation_8r6nl"]
+length = 0.001
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath(".:modulate")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 0,
+"values": [Color(1, 1, 1, 0)]
+}
+
+[sub_resource type="Animation" id="Animation_6es4r"]
+resource_name = "complete"
+length = 1.5
+step = 0.1
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath(".:modulate")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0, 0.2, 1, 1.5),
+"transitions": PackedFloat32Array(1, 1, 1, 1),
+"update": 0,
+"values": [Color(1, 1, 1, 1), Color(0, 1, 0, 1), Color(0, 1, 0, 1), Color(0, 1, 0, 0)]
+}
+
+[sub_resource type="Animation" id="Animation_qbc2r"]
+resource_name = "tutorial"
+length = 0.8
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath(".:modulate")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0, 0.8),
+"transitions": PackedFloat32Array(1, 1),
+"update": 0,
+"values": [Color(1, 1, 1, 0), Color(1, 1, 1, 1)]
+}
+
+[sub_resource type="AnimationLibrary" id="AnimationLibrary_woatg"]
+_data = {
+"RESET": SubResource("Animation_8r6nl"),
+"complete": SubResource("Animation_6es4r"),
+"tutorial": SubResource("Animation_qbc2r")
+}
+
+[sub_resource type="Shader" id="Shader_47b3p"]
+code = "// A Customizable Gausian Blur Shader
+// Credits to DJBob Gaming YT :D
+shader_type canvas_item;
+uniform sampler2D SCREEN_TEXTURE : hint_screen_texture, filter_linear_mipmap;
+uniform int blur_radius : hint_range(1, 32) = 8;
+uniform float Darkness : hint_range(0.0,1.0) = 0.1;
+uniform float R : hint_range(0.0,1.0) = 0;
+uniform float G : hint_range(0.0,1.0) = 0;
+uniform float B : hint_range(0.0,1.0) = 0;
+uniform float blur_strength : hint_range(0.1, 10.0) = 1.0;
+
+float gaussian_weight(float i, float sigma) {
+    return exp(-0.5 * (i * i) / (sigma * sigma));
+}
+
+void calculate_kernel(out float kernel[32], int radius, float sigma) {
+    float sum = 0.0;
+    for (int i = 0; i <= radius; i++) {
+        kernel[i] = gaussian_weight(float(i), sigma);
+        sum += i == 0 ? kernel[i] : 2.0 * kernel[i];
+    }
+    for (int i = 0; i <= radius; i++) {
+        kernel[i] /= sum;
+    }
+}
+
+void fragment() {
+    vec2 resolution = SCREEN_PIXEL_SIZE;
+    vec2 uv = SCREEN_UV;
+
+    float kernel[32];
+    calculate_kernel(kernel, blur_radius, blur_strength);
+
+    vec3 final_color = vec3(0.0);
+    float total_weight = 0.0;
+
+    for (int x = -blur_radius; x <= blur_radius; x++) {
+        for (int y = -blur_radius; y <= blur_radius; y++) {
+            float weight = kernel[abs(x)] * kernel[abs(y)];
+            vec2 offset = vec2(float(x), float(y)) * resolution;
+            final_color += texture(SCREEN_TEXTURE, uv + offset).rgb * weight;
+            total_weight += weight;
+        }
+    }
+
+    final_color /= total_weight;
+	final_color.r = (final_color.r + R) - Darkness;
+	final_color.g = (final_color.g + G) - Darkness;
+	final_color.b = (final_color.b + B) - Darkness;
+
+    COLOR = vec4(final_color, 1.0);
+}"
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_2nfwp"]
+shader = SubResource("Shader_47b3p")
+shader_parameter/blur_radius = 8
+shader_parameter/Darkness = 0.05
+shader_parameter/R = 0.0
+shader_parameter/G = 0.0
+shader_parameter/B = 0.0
+shader_parameter/blur_strength = 1.5
+
+[sub_resource type="Shader" id="Shader_7r7cn"]
+code = "shader_type canvas_item;
+
+uniform float progress : hint_range(0.0, 1.0) = 0.5;
+uniform vec4 background_color : source_color = vec4(0.5, 0.5, 0.5, 1.0);
+uniform sampler2D color_gradient : source_color;
+uniform sampler2D mask_texture : hint_default_white;
+
+// Wave effect parameters
+uniform float wave_amplitude : hint_range(0.0, 0.1) = 0.02;
+uniform float wave_frequency : hint_range(0.0, 10.0) = 3.0;
+uniform float wave_speed : hint_range(0.0, 5.0) = 1.5;
+
+// Particle effect parameters
+uniform float particle_speed : hint_range(0.01, 0.5) = 0.05;
+uniform float particle_lifetime : hint_range(1.0, 10.0) = 3.0;
+uniform float particle_softness : hint_range(0.001, 1.0) = 0.01;
+uniform float particle_spacing : hint_range(0.01, 1.0) = 0.1;
+uniform vec2 particle_offset = vec2(0.0, 0.0);
+uniform vec2 particle_start_scale = vec2(0.02, 0.02);
+uniform vec2 particle_end_scale = vec2(0.01, 0.01);
+uniform float particle_scale_randomness : hint_range(0.0, 1.0) = 0.5;
+uniform sampler2D particle_alpha_gradient : source_color;
+uniform int particle_amount : hint_range(0, 50) = 20;
+
+// Pseudo-random function
+float rand(vec2 co) {
+    return fract(sin(dot(co.xy ,vec2(12.9898,78.233))) * 43758.5453);
+}
+
+// Function to generate a single particle
+float particle(vec2 uv, float particle_id, float time, float mask_value) {
+    float random_offset = rand(vec2(particle_id, 0.0));
+    float spawn_time = particle_id * particle_spacing;
+    float life = mod(time - spawn_time, particle_lifetime) / particle_lifetime;
+    
+    if (life < 0.0 || life >= 1.0) return 0.0;
+    
+    float vertical_pos = rand(vec2(particle_id, 1.0));
+    float horizontal_pos = progress + life * particle_speed;
+    
+    vec2 particle_pos = vec2(horizontal_pos, vertical_pos) + particle_offset;
+    
+    // Calculate scale with randomness
+    float scale_random = rand(vec2(particle_id, 2.0)) * particle_scale_randomness;
+    vec2 start_scale = particle_start_scale * (1.0 - scale_random);
+    vec2 end_scale = particle_end_scale * (1.0 - scale_random);
+    vec2 current_scale = mix(start_scale, end_scale, life);
+    
+    vec2 scaled_uv = (uv - particle_pos) / current_scale;
+    float dist = length(scaled_uv);
+    
+    float alpha = texture(particle_alpha_gradient, vec2(life, 0.5)).a;
+    
+    return smoothstep(1.0 + particle_softness, 1.0, dist) * alpha * mask_value;
+}
+
+void fragment() {
+    vec2 uv = UV;
+    
+    // Sample the mask texture or use default (fully visible) if not provided
+    float mask = texture(mask_texture, uv).r;
+    
+    // Calculate wave offset
+    float wave_offset = wave_amplitude * sin(wave_frequency * uv.y + TIME * wave_speed);
+    
+    // Apply wave offset to progress
+    float wave_progress = progress + wave_offset;
+    
+    // Sample the color from the gradient texture based on progress
+    vec4 gradient_color = texture(color_gradient, vec2(progress, 0.5));
+    
+    // Start with the background color
+    vec4 final_color = background_color;
+    
+    // Apply the progress bar with mask
+    if (uv.x < wave_progress) {
+        final_color = mix(background_color, gradient_color, mask);
+    }
+    
+    // Generate particles
+    float particles = 0.0;
+    for (float i = 0.0; i < float(particle_amount); i++) {
+        particles += particle(uv, i, TIME, mask);
+    }
+    particles = clamp(particles, 0.0, 1.0);
+    
+    // Add particles to the final color
+    final_color = mix(final_color, gradient_color, particles * step(uv.x, 1.0));
+    
+    COLOR = final_color;
+}"
+
+[sub_resource type="Gradient" id="Gradient_7el6s"]
+offsets = PackedFloat32Array(0.52459)
+colors = PackedColorArray(0, 0, 0, 1)
+
+[sub_resource type="GradientTexture1D" id="GradientTexture1D_x6ve4"]
+gradient = SubResource("Gradient_7el6s")
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_e0gdd"]
+shader = SubResource("Shader_7r7cn")
+shader_parameter/progress = 0.0
+shader_parameter/background_color = Color(0.501961, 0.501961, 0.501961, 0)
+shader_parameter/wave_amplitude = 0.02
+shader_parameter/wave_frequency = 3.0
+shader_parameter/wave_speed = 1.5
+shader_parameter/particle_speed = 0.05
+shader_parameter/particle_lifetime = 3.0
+shader_parameter/particle_softness = 0.01
+shader_parameter/particle_spacing = 0.1
+shader_parameter/particle_offset = Vector2(0, 0)
+shader_parameter/particle_start_scale = Vector2(0.02, 0.02)
+shader_parameter/particle_end_scale = Vector2(0.01, 0.01)
+shader_parameter/particle_scale_randomness = 0.0
+shader_parameter/particle_amount = 0
+shader_parameter/color_gradient = SubResource("GradientTexture1D_x6ve4")
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_kekb6"]
+size = Vector2(55, 148)
+
+[node name="World" type="Node2D"]
+script = ExtResource("1_30x1d")
+default_player_pos = Vector2(-23, 345)
+
+[node name="Camera2D" type="Camera2D" parent="."]
+anchor_mode = 0
+script = ExtResource("2_vbl43")
+
+[node name="ParallaxBackground" type="ParallaxBackground" parent="."]
+process_mode = 3
+
+[node name="ParallaxLayer" type="ParallaxLayer" parent="ParallaxBackground"]
+motion_mirroring = Vector2(960, 640)
+
+[node name="TextureRect" type="TextureRect" parent="ParallaxBackground/ParallaxLayer"]
+offset_right = 960.0
+offset_bottom = 640.0
+texture = ExtResource("4_j7u3h")
+expand_mode = 1
+stretch_mode = 1
+
+[node name="Label" type="Label" parent="."]
+modulate = Color(1, 1, 1, 0)
+offset_left = 622.0
+offset_top = 316.0
+offset_right = 755.0
+offset_bottom = 350.0
+theme_override_colors/font_color = Color(0, 1, 0, 1)
+theme_override_colors/font_shadow_color = Color(0, 0.384314, 0, 1)
+theme_override_font_sizes/font_size = 24
+text = "Go There ->"
+
+[node name="AnimationPlayer" type="AnimationPlayer" parent="Label"]
+libraries = {
+"": SubResource("AnimationLibrary_rxylm")
+}
+
+[node name="GreenArea" type="Sprite2D" parent="."]
+modulate = Color(1, 1, 1, 0)
+material = SubResource("ShaderMaterial_vd2t5")
+position = Vector2(457.395, 344.82)
+scale = Vector2(2.25, 2.25)
+texture = SubResource("AtlasTexture_lxgio")
+
+[node name="PlayerDetector" type="ShapeCast2D" parent="GreenArea"]
+position = Vector2(0.33, 4.11)
+shape = SubResource("RectangleShape2D_va6de")
+target_position = Vector2(0, 0)
+max_results = 1
+collision_mask = 2
+
+[node name="Timer" type="Timer" parent="GreenArea"]
+one_shot = true
+
+[node name="Label" type="Label" parent="GreenArea"]
+visible = false
+custom_minimum_size = Vector2(10, 23)
+offset_left = -4.0
+offset_top = -32.0
+offset_right = 6.0
+offset_bottom = -9.0
+text = "1"
+
+[node name="GreenLabel" type="Label" parent="GreenArea"]
+visible = false
+custom_minimum_size = Vector2(10, 23)
+offset_left = -4.0
+offset_top = -32.0
+offset_right = 6.0
+offset_bottom = -9.0
+theme_override_colors/font_color = Color(0, 1, 0, 1)
+text = "5"
+
+[node name="AnimationPlayer" type="AnimationPlayer" parent="GreenArea"]
+libraries = {
+"": SubResource("AnimationLibrary_4nwf0")
+}
+
+[node name="Label2" type="Label" parent="."]
+modulate = Color(1, 1, 1, 0)
+offset_left = 26.09
+offset_top = 262.21
+offset_right = 357.09
+offset_bottom = 311.21
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 4
+text = "It is your clone who copies your movement
+(Your can take help of it and jump over it)"
+horizontal_alignment = 1
+
+[node name="AnimationPlayer" type="AnimationPlayer" parent="Label2"]
+libraries = {
+"": SubResource("AnimationLibrary_qooqi")
+}
+
+[node name="Player" parent="." instance=ExtResource("4_ap2gu")]
+position = Vector2(183, 219.76)
+
+[node name="HUD" type="CanvasLayer" parent="."]
+process_mode = 3
+
+[node name="TitleLabel" type="RichTextLabel" parent="HUD"]
+anchors_preset = 10
+anchor_right = 1.0
+offset_top = -100.0
+offset_bottom = -45.0
+grow_horizontal = 2
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 1)
+theme_override_constants/shadow_offset_y = 1
+theme_override_constants/shadow_offset_x = 2
+theme_override_constants/shadow_outline_size = 4
+theme_override_font_sizes/bold_italics_font_size = 40
+theme_override_font_sizes/normal_font_size = 40
+theme_override_font_sizes/bold_font_size = 40
+bbcode_enabled = true
+text = "[center][u]How To Play[/u][/center]"
+fit_content = true
+
+[node name="AnimationPlayer" type="AnimationPlayer" parent="HUD/TitleLabel"]
+libraries = {
+"": SubResource("AnimationLibrary_vs41w")
+}
+
+[node name="Restart" type="TextureButton" parent="HUD"]
+offset_left = 20.0
+offset_top = 16.0
+offset_right = 52.0
+offset_bottom = 48.0
+scale = Vector2(1.1, 1.1)
+pivot_offset = Vector2(16, 16)
+texture_normal = ExtResource("16_iubcp")
+texture_pressed = ExtResource("16_iubcp")
+texture_hover = ExtResource("16_iubcp")
+texture_focused = ExtResource("16_iubcp")
+ignore_texture_size = true
+stretch_mode = 5
+
+[node name="Label" type="Label" parent="HUD/Restart"]
+layout_mode = 0
+offset_left = 15.1818
+offset_top = 17.1818
+offset_right = 42.1818
+offset_bottom = 44.1818
+scale = Vector2(0.7, 0.7)
+pivot_offset = Vector2(12, 12)
+theme_override_colors/font_color = Color(0, 0, 0, 1)
+theme_override_font_sizes/font_size = 16
+theme_override_styles/normal = SubResource("StyleBoxFlat_vi8ss")
+text = "R"
+horizontal_alignment = 1
+
+[node name="ClickSound" type="AudioStreamPlayer" parent="HUD/Restart"]
+stream = ExtResource("7_y03c5")
+
+[node name="Label" type="Label" parent="HUD"]
+modulate = Color(1, 1, 1, 0)
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -209.5
+offset_top = 31.25
+offset_right = 209.5
+offset_bottom = 57.25
+grow_horizontal = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 4
+theme_override_font_sizes/font_size = 18
+text = "Go the the green area and stand there for 5 secs"
+
+[node name="AnimationPlayer" type="AnimationPlayer" parent="HUD/Label"]
+libraries = {
+"": SubResource("AnimationLibrary_woatg")
+}
+
+[node name="PauseMenu" type="Control" parent="HUD"]
+visible = false
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("7_qajbw")
+
+[node name="BlurBG" type="ColorRect" parent="HUD/PauseMenu"]
+material = SubResource("ShaderMaterial_2nfwp")
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Label" type="Label" parent="HUD/PauseMenu"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -152.0
+offset_top = -32.0
+offset_right = 152.0
+offset_bottom = 32.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 1)
+theme_override_constants/shadow_offset_x = 2
+theme_override_constants/shadow_offset_y = 2
+theme_override_constants/shadow_outline_size = 2
+theme_override_font_sizes/font_size = 46
+text = "Game Paused"
+
+[node name="Cursor" type="TextureRect" parent="HUD"]
+offset_left = -30.0
+offset_top = -30.0
+offset_right = 10.0
+offset_bottom = 10.0
+scale = Vector2(1.5, 1.5)
+mouse_filter = 2
+texture = ExtResource("6_toevy")
+script = ExtResource("7_olyt0")
+
+[node name="ClickSound" type="AudioStreamPlayer2D" parent="HUD/Cursor"]
+stream = ExtResource("8_rhgdh")
+volume_db = 5.0
+
+[node name="LoadingScreen" type="ColorRect" parent="HUD"]
+material = SubResource("ShaderMaterial_e0gdd")
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 800.0
+offset_right = 800.0
+grow_horizontal = 2
+grow_vertical = 2
+scale = Vector2(-1, 1)
+script = ExtResource("5_kpgss")
+
+[node name="Cover" type="ColorRect" parent="HUD/LoadingScreen"]
+visible = false
+show_behind_parent = true
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0, 0, 0, 1)
+
+[node name="Label" type="Label" parent="HUD/LoadingScreen"]
+modulate = Color(1, 1, 1, 0)
+layout_mode = 1
+anchors_preset = 14
+anchor_top = 0.5
+anchor_right = 1.0
+anchor_bottom = 0.5
+offset_top = -45.5
+offset_bottom = 45.5
+grow_horizontal = 2
+grow_vertical = 2
+scale = Vector2(-1, 1)
+pivot_offset = Vector2(400, 45)
+theme_override_font_sizes/font_size = 66
+text = "Good Job!"
+horizontal_alignment = 1
+
+[node name="WinningSound" type="AudioStreamPlayer2D" parent="HUD/LoadingScreen"]
+stream = ExtResource("13_l0j1e")
+volume_db = 5.0
+
+[node name="WinningSound2" type="AudioStreamPlayer2D" parent="HUD/LoadingScreen"]
+stream = ExtResource("13_ujn3x")
+volume_db = 5.0
+
+[node name="Level1" parent="." instance=ExtResource("7_ealsc")]
+queue_at_start = true
+
+[node name="ParallaxBackground2" type="ParallaxBackground" parent="."]
+visible = false
+
+[node name="TextureRect" type="TextureRect" parent="ParallaxBackground2"]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+texture = ExtResource("8_t8opi")
+
+[node name="ParallaxLayer" type="ParallaxLayer" parent="ParallaxBackground2"]
+motion_mirroring = Vector2(2000, 0)
+
+[node name="TextureRect" type="TextureRect" parent="ParallaxBackground2/ParallaxLayer"]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_right = 800.0
+offset_bottom = 500.0
+grow_horizontal = 2
+grow_vertical = 2
+scale = Vector2(2.5, 2.5)
+texture = ExtResource("9_hctvx")
+expand_mode = 1
+stretch_mode = 1
+
+[node name="TextureRect2" type="TextureRect" parent="ParallaxBackground2"]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_right = 800.0
+offset_bottom = 500.0
+grow_horizontal = 2
+grow_vertical = 2
+scale = Vector2(2.5, 2.5)
+texture = ExtResource("8_0dnxi")
+expand_mode = 1
+stretch_mode = 1
+
+[node name="TextureRect3" type="TextureRect" parent="ParallaxBackground2"]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_right = 800.0
+offset_bottom = 500.0
+grow_horizontal = 2
+grow_vertical = 2
+scale = Vector2(2.5, 2.5)
+texture = ExtResource("8_6egug")
+expand_mode = 1
+stretch_mode = 1
+
+[node name="StaticBody2D" type="StaticBody2D" parent="."]
+position = Vector2(803, 284)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="StaticBody2D"]
+position = Vector2(7.5, 25)
+shape = SubResource("RectangleShape2D_kekb6")
+disabled = true
+
+[node name="AudioStreamPlayer2D" type="AudioStreamPlayer2D" parent="."]
+stream = ExtResource("19_f461l")
+volume_db = 2.0
+
+[connection signal="timeout" from="GreenArea/Timer" to="." method="_on_timer_timeout"]
+[connection signal="button_down" from="HUD/Restart" to="." method="_on_restart_button_down"]
+[connection signal="pressed" from="HUD/Restart" to="." method="_on_restart_pressed"]

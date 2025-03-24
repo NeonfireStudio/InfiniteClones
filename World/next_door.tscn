@@ -1,0 +1,203 @@
+[gd_scene load_steps=19 format=3 uid="uid://v64vc12e0x4e"]
+
+[ext_resource type="Script" path="res://World/next_door.gd" id="1_4pme8"]
+[ext_resource type="Texture2D" uid="uid://cmgs68dg7jhds" path="res://Assets/Sprites/End (Pressed) (64x64).png" id="2_favi3"]
+[ext_resource type="AudioStream" uid="uid://ctujr2iwnti7f" path="res://Assets/Audios/button-8-88355.mp3" id="3_od3wf"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_o5wsm"]
+atlas = ExtResource("2_favi3")
+region = Rect2(448, 0, 64, 64)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_wks2b"]
+size = Vector2(69, 67)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_lc4tn"]
+atlas = ExtResource("2_favi3")
+region = Rect2(448, 0, 64, 64)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_6138t"]
+atlas = ExtResource("2_favi3")
+region = Rect2(384, 0, 64, 64)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_1djda"]
+atlas = ExtResource("2_favi3")
+region = Rect2(320, 0, 64, 64)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_giw3w"]
+atlas = ExtResource("2_favi3")
+region = Rect2(256, 0, 64, 64)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_b513a"]
+atlas = ExtResource("2_favi3")
+region = Rect2(192, 0, 64, 64)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_3b55j"]
+atlas = ExtResource("2_favi3")
+region = Rect2(128, 0, 64, 64)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_iubei"]
+atlas = ExtResource("2_favi3")
+region = Rect2(64, 0, 64, 64)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_fymm8"]
+atlas = ExtResource("2_favi3")
+region = Rect2(0, 0, 64, 64)
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_oexwc"]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_lc4tn")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_6138t")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_1djda")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_giw3w")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_b513a")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_3b55j")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_iubei")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_fymm8")
+}],
+"loop": false,
+"name": &"Pressed",
+"speed": 15.0
+}]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_afgbr"]
+size = Vector2(34.11, 3.548)
+
+[sub_resource type="Animation" id="Animation_cl17n"]
+length = 0.001
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("AnimatedSprite2D:frame")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [0]
+}
+tracks/1/type = "value"
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/path = NodePath("CollisionShape2D:position")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 0,
+"values": [Vector2(0, 15)]
+}
+tracks/2/type = "value"
+tracks/2/imported = false
+tracks/2/enabled = true
+tracks/2/path = NodePath("CollisionShape2D:scale")
+tracks/2/interp = 1
+tracks/2/loop_wrap = true
+tracks/2/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 0,
+"values": [Vector2(1, 1)]
+}
+
+[sub_resource type="Animation" id="Animation_a216p"]
+resource_name = "pressed"
+length = 0.7
+step = 0.1
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("AnimatedSprite2D:frame")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7),
+"transitions": PackedFloat32Array(1, 1, 1, 1, 1, 1, 1, 1),
+"update": 1,
+"values": [0, 1, 2, 3, 4, 5, 6, 7]
+}
+tracks/1/type = "value"
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/path = NodePath("CollisionShape2D:position")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/keys = {
+"times": PackedFloat32Array(0, 0.7),
+"transitions": PackedFloat32Array(1, 1),
+"update": 0,
+"values": [Vector2(0, 14.5), Vector2(0, 19.5)]
+}
+tracks/2/type = "value"
+tracks/2/imported = false
+tracks/2/enabled = true
+tracks/2/path = NodePath("CollisionShape2D:scale")
+tracks/2/interp = 1
+tracks/2/loop_wrap = true
+tracks/2/keys = {
+"times": PackedFloat32Array(0, 0.7),
+"transitions": PackedFloat32Array(1, 1),
+"update": 0,
+"values": [Vector2(1, 1), Vector2(1, 0.85)]
+}
+
+[sub_resource type="AnimationLibrary" id="AnimationLibrary_ojacu"]
+_data = {
+"RESET": SubResource("Animation_cl17n"),
+"pressed": SubResource("Animation_a216p")
+}
+
+[node name="NextDoor" type="StaticBody2D"]
+collision_mask = 7
+script = ExtResource("1_4pme8")
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+visible = false
+scale = Vector2(1.5, 1.5)
+texture = SubResource("AtlasTexture_o5wsm")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+position = Vector2(0, 15)
+shape = SubResource("RectangleShape2D_wks2b")
+
+[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="."]
+scale = Vector2(1.5, 1.5)
+sprite_frames = SubResource("SpriteFrames_oexwc")
+animation = &"Pressed"
+
+[node name="Area2D" type="Area2D" parent="."]
+visible = false
+position = Vector2(0, -23)
+collision_mask = 2
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Area2D"]
+position = Vector2(0, 1.77375)
+shape = SubResource("RectangleShape2D_afgbr")
+
+[node name="AnimationPlayer" type="AnimationPlayer" parent="."]
+libraries = {
+"": SubResource("AnimationLibrary_ojacu")
+}
+
+[node name="ImpactSound" type="AudioStreamPlayer2D" parent="."]
+stream = ExtResource("3_od3wf")
+volume_db = -2.0
+
+[connection signal="body_entered" from="Area2D" to="." method="_on_body_entered"]
